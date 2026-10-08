@@ -723,13 +723,30 @@
     }
 
     // 1. LIVE WEBCAM MODE (Native In-Browser Video + 9-Part Spatial HUD)
+    let cameraErrorMessage = "";
+
     async function startWebcamMode() {
       currentMode = 'webcam';
+      cameraErrorMessage = "";
       updateModeButtons('btnModeWebcam');
       if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
 
       imgStream.style.display = 'none';
       simCanvas.style.display = 'block';
+
+      // Draw initial loading state
+      const w = 640;
+      const h = 480;
+      ctx.fillStyle = '#080c16';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 16px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('📷 Requesting Camera Access...', w / 2, h / 2 - 20);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '13px "Plus Jakarta Sans"';
+      ctx.fillText('Please click "Allow" on the camera permission prompt.', w / 2, h / 2 + 10);
+      ctx.textAlign = 'left';
 
       try {
         if (!webcamStream) {
@@ -747,9 +764,43 @@
         logMessage('AI', 'Camera connected. Analyzing 9 spatial zones in real-time.');
         startWebcamLoop();
       } catch (err) {
-        logMessage('SYS', 'Camera access unavailable: ' + err.message + '. Starting corridor simulation scene.');
-        startCorridorMode();
+        let hint = "Please allow camera access in your browser address bar.";
+        if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+          hint = "Webcam is currently in use by another app (e.g. Python OpenCV). Close it or restart browser.";
+        } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          hint = "Camera permission was denied. Click the lock/camera icon in your URL bar to allow.";
+        }
+        cameraErrorMessage = `${err.name}: ${hint}`;
+        logMessage('SYS', 'Camera error: ' + cameraErrorMessage);
+
+        document.getElementById('detectionCountBadge').innerText = 'Camera Permission Blocked';
+        document.getElementById('detectionCountBadge').style.borderColor = '#ef4444';
+        document.getElementById('detectionCountBadge').style.color = '#ef4444';
+
+        // Draw clear camera error card on canvas (DO NOT auto-bounce!)
+        renderCameraErrorCard(hint);
       }
+    }
+
+    function renderCameraErrorCard(hint) {
+      const w = 640;
+      const h = 480;
+      ctx.fillStyle = '#080c16';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 20px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('📷 Camera Access Required', w / 2, 180);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '14px "Plus Jakarta Sans"';
+      ctx.fillText(hint, w / 2, 220);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '12px "JetBrains Mono"';
+      ctx.fillText('Click [🎮 Corridor Simulation] above to test without physical camera.', w / 2, 260);
+      ctx.textAlign = 'left';
     }
 
     function startWebcamLoop() {
@@ -914,10 +965,48 @@
       updateModeButtons('btnModePython');
       if (canvasAnimId) cancelAnimationFrame(canvasAnimId);
 
-      simCanvas.style.display = 'none';
-      imgStream.style.display = 'block';
-      imgStream.src = '/video_feed?' + Date.now();
-      logMessage('SYS', 'Attempting connection to Python server at /video_feed...');
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocalhost) {
+        simCanvas.style.display = 'none';
+        imgStream.style.display = 'block';
+        imgStream.src = '/video_feed?' + Date.now();
+        logMessage('SYS', 'Attempting connection to Python server at /video_feed...');
+      } else {
+        // On cloud/Vercel: explain how to access the Python server directly
+        imgStream.style.display = 'none';
+        simCanvas.style.display = 'block';
+        renderPythonCloudNotice();
+      }
+    }
+
+    function renderPythonCloudNotice() {
+      const w = 640;
+      const h = 480;
+      ctx.fillStyle = '#080c16';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 18px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚡ Local Python Server Running on Your PC', w / 2, 160);
+
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '13px "Plus Jakarta Sans"';
+      ctx.fillText('To view the real OpenCV YOLOv8 MJPEG feed directly from your computer:', w / 2, 200);
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 14px "JetBrains Mono"';
+      ctx.fillText('http://localhost:8000/simulation.html', w / 2, 240);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '12px "Plus Jakarta Sans"';
+      ctx.fillText('1. Double-click run_web_simulator.bat in your project folder', w / 2, 280);
+      ctx.fillText('2. Or click [📷 Live Webcam Mode] above to test in browser right now', w / 2, 305);
+      ctx.textAlign = 'left';
+
+      document.getElementById('detectionCountBadge').innerText = 'Local Python Server on Port 8000';
+      document.getElementById('detectionCountBadge').style.borderColor = '#38bdf8';
+      document.getElementById('detectionCountBadge').style.color = '#38bdf8';
     }
 
     function handleStreamSuccess() {
@@ -934,17 +1023,17 @@
 
     function handleStreamError(img) {
       if (currentMode === 'python' && !isPythonConnected) {
-        logMessage('SYS', 'Local Python server not running. Switched to Live Webcam mode.');
-        startWebcamMode();
+        logMessage('SYS', 'Local Python server not reachable at /video_feed.');
+        renderPythonCloudNotice();
       }
     }
 
-    // Auto-detect best mode on startup
+    // Auto-detect best mode on startup: default to Corridor Simulation scene smoothly
     window.addEventListener('DOMContentLoaded', () => {
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         startPythonMode();
       } else {
-        startWebcamMode();
+        startCorridorMode();
       }
     });
 
