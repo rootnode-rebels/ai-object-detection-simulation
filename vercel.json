@@ -1,6 +1,5 @@
 {
-  "version": 2,
-  "name": "ai-object-detection-simulation",
+  "framework": null,
   "cleanUrls": true,
   "routes": [
     {

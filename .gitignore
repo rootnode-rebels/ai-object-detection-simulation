@@ -5,22 +5,72 @@ __pycache__/
 *.so
 .Python
 build/
+# Distribution artifacts (Fix for Finding F-07: Ignore dist/ to keep git repo lightweight)
 dist/
 
-# Environments
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
 venv/
 .venv/
 env/
 ENV/
-portable_python/
 
-# Temporary files & logs
+# Model binaries
+model_files/*
+!model_files/*.onnx
+*.hef
+*.caffemodel
 *.tmp
-*.log
-*.wav
 
-# IDE & OS
+# Portable python & temporary artifacts
+portable_python/
+*.zip
+get-pip.py
+weights/
+*.pt
+
+# IDEs & OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Generated documentation & local PDFs
+*.pdf
+generate_*_pdf.py
+*.wav
+*.spec
+*.zip
+*.exe
+
+# Local AI Memory & Chat History (Private to local workspace)
+brain.md
+CHAT_ARCHIVE.md
+chat_history.md
+CHAT_SAVE.md
+
+# Audit Reports & Generation Scripts (Private to local workspace)
+generate_audit_reports.py
+*Audit_Report*
+*.docx
+
+
+
+
+
+.vercel
+.vercel/
+portable_python/
+*.pt
+*.onnx

@@ -61,14 +61,7 @@ echo   [L] / [M] / [R]: Query specific sector (Left / Middle / Right)
 echo   [Q] / [ESC]   : Quit simulation
 echo.
 
-:: Pick model: 92-class if present, else standard yolov8n
-set MODEL_ARG=
-if exist "model_files\yolov8_assistive_92.onnx" (
-    set MODEL_ARG=--model model_files\yolov8_assistive_92.onnx --classes classes.txt
-) else if exist "model_files\yolov8n.onnx" (
-    set MODEL_ARG=--model model_files\yolov8n.onnx
-)
-%PYTHON_BIN% simulate_pc.py %MODEL_ARG% --resolution 320
+%PYTHON_BIN% simulate_pc.py --model model_files\yolov8_assistive_92.onnx --classes classes.txt --resolution 320
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
