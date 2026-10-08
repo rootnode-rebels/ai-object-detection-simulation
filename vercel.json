@@ -1,17 +1,7 @@
 {
-  "framework": null,
-  "cleanUrls": true,
-  "routes": [
-    {
-      "src": "^/simulation$",
-      "dest": "/simulation.html"
-    },
-    {
-      "src": "^/showcase$",
-      "dest": "/prototype_showcase.html"
-    },
-    {
-      "handle": "filesystem"
-    }
+  "cleanUrls": false,
+  "rewrites": [
+    { "source": "/simulation", "destination": "/simulation.html" },
+    { "source": "/showcase", "destination": "/prototype_showcase.html" }
   ]
 }
