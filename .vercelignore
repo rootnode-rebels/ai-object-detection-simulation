@@ -1,0 +1,6 @@
+# Ignore Python scripts so Vercel does not treat this as a Serverless Python API
+*.py
+requirements.txt
+
+# Ignore large binary weights not needed for browser hosting
+model_files/
