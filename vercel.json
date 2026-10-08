@@ -1,7 +1,4 @@
 {
-  "cleanUrls": false,
-  "rewrites": [
-    { "source": "/simulation", "destination": "/simulation.html" },
-    { "source": "/showcase", "destination": "/prototype_showcase.html" }
-  ]
+  "framework": null,
+  "cleanUrls": false
 }
